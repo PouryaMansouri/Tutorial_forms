@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="" method="post">
+    {% csrf_token %}
+    <label for="name">Name: </label>
+    <input type="text" name="name" id="name" maxlength="150"> <br>
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email"><br>
+    <label for="date">Date:</label>
+    <input type="date" id="date" name="date"><br>
+    <label for="phone"></label>
+    <input type="text" name="phone" id="phone" maxlength="13"><br>
+    <label for="address">Address: </label>
+    <textarea name="address" id="address"></textarea><br>
+    <input type="submit" value="create">
+</form>
+</body>
+</html>
