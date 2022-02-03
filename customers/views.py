@@ -9,19 +9,12 @@ from .models import Customer
 class CreateCustomer(View):
 
     def post(self, request):
-        form = forms.CustomerForm(self.request.POST)
-        form = forms.CustomerForm()
+        form = forms.CustomerForm(self.request.POST, self.request.FILES)
         if form.is_valid():
-            name = form.cleaned_data['name']
-            birthday = form.cleaned_data['birthday']
-            email = form.cleaned_data['email']
-            address = form.cleaned_data['address']
-            status = form.cleaned_data['status']
-            phone = form.cleaned_data['phone']
-            c1 = Customer.objects.create(name=name, birthday=birthday, phone=phone, email=email,
-                                         address=address)
-            return HttpResponse('Thanks,Customer create')
-
+            obj: Customer = form.save(commit=False)
+            obj.status = False
+            obj.save()
+            return HttpResponse('Customer create')
         context = {
             'create_form': form
         }
@@ -33,3 +26,13 @@ class CreateCustomer(View):
             'create_form': form
         }
         return render(request=self.request, template_name='customers/create_form.html', context=context)
+
+
+class CreateCar(View):
+
+    def get(self, request):
+        context = {
+            'form': forms.CarForm()
+        }
+
+        return render(request=self.request, template_name='customers/car_form.html', context=context)
