@@ -19,6 +19,11 @@ class Customer(models.Model):
         verbose_name = 'Customer'
         verbose_name_plural = 'Customers'
 
+    def count_car(self):
+        return self.car_set.count()
+
+    count_car.short_description = "his cars"
+
 
 class Car(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)

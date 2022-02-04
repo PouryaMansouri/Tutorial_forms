@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
+from customers.forms import CustomerForm
 from customers.models import Customer, Car, Club
 
 
@@ -15,7 +16,8 @@ class ClubInline(admin.TabularInline):
 
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'email', 'phone']
+    form = CustomerForm
+    list_display = ['id', 'name', 'status', 'email', 'phone', 'count_club']
     list_display_links = ['email']
     # fields = ['name', 'phone']
     fieldsets = (
@@ -27,7 +29,20 @@ class CustomerAdmin(admin.ModelAdmin):
          {'fields': ['address', ]}),
     )
     inlines = [CarInline, ClubInline]
-    search_fields = ['name','phone']
+    search_fields = ['name', 'phone']
+
+    def change_status(self, request, queryset):
+        queryset.update(status=True)
+
+    actions = ['change_status']
+
+    # def count_car(self, obj: Customer):
+    #     return obj.car_set.count()
+
+    def count_club(self, obj: Customer):
+        return obj.club_set.count()
+
+    # count_car.short_description = "cars"
 
 
 class CarAdmin(admin.ModelAdmin):
