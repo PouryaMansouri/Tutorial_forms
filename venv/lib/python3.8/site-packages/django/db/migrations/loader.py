@@ -149,10 +149,7 @@ class MigrationLoader:
                 "There is more than one migration for '%s' with the prefix '%s'" % (app_label, name_prefix)
             )
         elif not results:
-            raise KeyError(
-                f"There is no migration for '{app_label}' with the prefix "
-                f"'{name_prefix}'"
-            )
+            raise KeyError("There no migrations for '%s' with the prefix '%s'" % (app_label, name_prefix))
         else:
             return self.disk_migrations[results[0]]
 
@@ -335,7 +332,7 @@ class MigrationLoader:
 
         See graph.make_state() for the meaning of "nodes" and "at_end".
         """
-        return self.graph.make_state(nodes=nodes, at_end=at_end, real_apps=self.unmigrated_apps)
+        return self.graph.make_state(nodes=nodes, at_end=at_end, real_apps=list(self.unmigrated_apps))
 
     def collect_sql(self, plan):
         """

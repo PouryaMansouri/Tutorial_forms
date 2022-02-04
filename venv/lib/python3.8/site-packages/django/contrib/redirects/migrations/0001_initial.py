@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('site', models.ForeignKey(
                     to='sites.Site',
+                    to_field='id',
                     on_delete=models.CASCADE,
                     verbose_name='site',
                 )),

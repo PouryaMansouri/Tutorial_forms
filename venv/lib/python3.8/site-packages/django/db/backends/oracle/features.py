@@ -15,7 +15,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
     select_for_update_of_column = True
     can_return_columns_from_insert = True
     supports_subqueries_in_group_by = False
-    ignores_unnecessary_order_by_in_subqueries = False
     supports_transactions = True
     supports_timezones = False
     has_native_duration_field = True
@@ -72,7 +71,6 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         'non_default': 'SWEDISH_CI',
         'swedish_ci': 'SWEDISH_CI',
     }
-    test_now_utc_template = "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'"
 
     django_test_skips = {
         "Oracle doesn't support SHA224.": {
@@ -86,7 +84,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         "Oracle requires ORDER BY in row_number, ANSI:SQL doesn't.": {
             'expressions_window.tests.WindowFunctionTests.test_row_number_no_ordering',
         },
-        'Raises ORA-00600: internal error code.': {
+        'Raises ORA-00600: internal error code on Oracle 18.': {
             'model_fields.test_jsonfield.TestQuerying.test_usage_in_subquery',
         },
     }
@@ -118,3 +116,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
                     return False
                 raise
             return True
+
+    @cached_property
+    def has_json_object_function(self):
+        # Oracle < 18 supports JSON_OBJECT() but it's not fully functional.
+        return self.connection.oracle_version >= (18,)

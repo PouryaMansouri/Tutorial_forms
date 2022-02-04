@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="{% static 'css/table.css' %}">
+</head>
+<body>
+<form action="{% url 'customers:update' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <table>
+        {{ create_form.as_table }}
+    </table>
+
+    <input type="submit" value="create">
+</form>
+</body>
+</html>

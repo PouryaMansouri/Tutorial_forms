@@ -73,7 +73,8 @@ class AppConfig:
         """Attempt to determine app's filesystem path from its module."""
         # See #21874 for extended discussion of the behavior of this method in
         # various cases.
-        # Convert to list because __path__ may not support indexing.
+        # Convert paths to list because Python's _NamespacePath doesn't support
+        # indexing.
         paths = list(getattr(module, '__path__', []))
         if len(paths) != 1:
             filename = getattr(module, '__file__', None)

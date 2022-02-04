@@ -73,6 +73,7 @@ class BulkInsertMapper:
         'DurationField': INTERVAL,
         'FloatField': NUMBER,
         'IntegerField': NUMBER,
+        'NullBooleanField': NUMBER,
         'PositiveBigIntegerField': NUMBER,
         'PositiveIntegerField': NUMBER,
         'PositiveSmallIntegerField': NUMBER,

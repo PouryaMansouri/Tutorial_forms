@@ -180,13 +180,10 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
         Retrieve the storage engine for a given table. Return the default
         storage engine if the table doesn't exist.
         """
-        cursor.execute("""
-            SELECT engine
-            FROM information_schema.tables
-            WHERE
-                table_name = %s AND
-                table_schema = DATABASE()
-        """, [table_name])
+        cursor.execute(
+            "SELECT engine "
+            "FROM information_schema.tables "
+            "WHERE table_name = %s", [table_name])
         result = cursor.fetchone()
         if not result:
             return self.connection.features._mysql_storage_engine
@@ -214,26 +211,20 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
         # Get the actual constraint names and columns
         name_query = """
             SELECT kc.`constraint_name`, kc.`column_name`,
-                kc.`referenced_table_name`, kc.`referenced_column_name`,
-                c.`constraint_type`
-            FROM
-                information_schema.key_column_usage AS kc,
-                information_schema.table_constraints AS c
+                kc.`referenced_table_name`, kc.`referenced_column_name`
+            FROM information_schema.key_column_usage AS kc
             WHERE
                 kc.table_schema = DATABASE() AND
-                c.table_schema = kc.table_schema AND
-                c.constraint_name = kc.constraint_name AND
-                c.constraint_type != 'CHECK' AND
                 kc.table_name = %s
             ORDER BY kc.`ordinal_position`
         """
         cursor.execute(name_query, [table_name])
-        for constraint, column, ref_table, ref_column, kind in cursor.fetchall():
+        for constraint, column, ref_table, ref_column in cursor.fetchall():
             if constraint not in constraints:
                 constraints[constraint] = {
                     'columns': OrderedSet(),
-                    'primary_key': kind == 'PRIMARY KEY',
-                    'unique': kind in {'PRIMARY KEY', 'UNIQUE'},
+                    'primary_key': False,
+                    'unique': False,
                     'index': False,
                     'check': False,
                     'foreign_key': (ref_table, ref_column) if ref_column else None,
@@ -241,6 +232,21 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
                 if self.connection.features.supports_index_column_ordering:
                     constraints[constraint]['orders'] = []
             constraints[constraint]['columns'].add(column)
+        # Now get the constraint types
+        type_query = """
+            SELECT c.constraint_name, c.constraint_type
+            FROM information_schema.table_constraints AS c
+            WHERE
+                c.table_schema = DATABASE() AND
+                c.table_name = %s
+        """
+        cursor.execute(type_query, [table_name])
+        for constraint, kind in cursor.fetchall():
+            if kind.lower() == "primary key":
+                constraints[constraint]['primary_key'] = True
+                constraints[constraint]['unique'] = True
+            elif kind.lower() == "unique":
+                constraints[constraint]['unique'] = True
         # Add check constraints.
         if self.connection.features.can_introspect_check_constraints:
             unnamed_constraints_index = 0
@@ -292,7 +298,7 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
                 constraints[index] = {
                     'columns': OrderedSet(),
                     'primary_key': False,
-                    'unique': not non_unique,
+                    'unique': False,
                     'check': False,
                     'foreign_key': None,
                 }

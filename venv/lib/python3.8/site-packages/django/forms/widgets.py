@@ -10,7 +10,7 @@ from itertools import chain
 
 from django.forms.utils import to_current_timezone
 from django.templatetags.static import static
-from django.utils import formats
+from django.utils import datetime_safe, formats
 from django.utils.datastructures import OrderedSet
 from django.utils.dates import MONTHS
 from django.utils.formats import get_format
@@ -606,8 +606,8 @@ class ChoiceWidget(Widget):
 
             for subvalue, sublabel in choices:
                 selected = (
-                    (not has_selected or self.allow_multiple_selected) and
-                    str(subvalue) in value
+                    str(subvalue) in value and
+                    (not has_selected or self.allow_multiple_selected)
                 )
                 has_selected |= selected
                 subgroup.append(self.create_option(
@@ -620,6 +620,8 @@ class ChoiceWidget(Widget):
 
     def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
         index = str(index) if subindex is None else "%s_%s" % (index, subindex)
+        if attrs is None:
+            attrs = {}
         option_attrs = self.build_attrs(self.attrs, attrs) if self.option_inherits_attrs else {}
         if selected:
             option_attrs.update(self.checked_attribute)
@@ -762,18 +764,8 @@ class RadioSelect(ChoiceWidget):
     template_name = 'django/forms/widgets/radio.html'
     option_template_name = 'django/forms/widgets/radio_option.html'
 
-    def id_for_label(self, id_, index=None):
-        """
-        Don't include for="field_0" in <label> to improve accessibility when
-        using a screen reader, in addition clicking such a label would toggle
-        the first input.
-        """
-        if index is None:
-            return ''
-        return super().id_for_label(id_, index)
 
-
-class CheckboxSelectMultiple(RadioSelect):
+class CheckboxSelectMultiple(ChoiceWidget):
     allow_multiple_selected = True
     input_type = 'checkbox'
     template_name = 'django/forms/widgets/checkbox_select.html'
@@ -788,6 +780,15 @@ class CheckboxSelectMultiple(RadioSelect):
         # HTML checkboxes don't appear in POST data if not checked, so it's
         # never known if the value is actually omitted.
         return False
+
+    def id_for_label(self, id_, index=None):
+        """
+        Don't include for="field_0" in <label> because clicking such a label
+        would toggle the first checkbox.
+        """
+        if index is None:
+            return ''
+        return super().id_for_label(id_, index)
 
 
 class MultiWidget(Widget):
@@ -1071,13 +1072,13 @@ class SelectDateWidget(Widget):
             return None
         if y is not None and m is not None and d is not None:
             input_format = get_format('DATE_INPUT_FORMATS')[0]
-            input_format = formats.sanitize_strftime_format(input_format)
             try:
                 date_value = datetime.date(int(y), int(m), int(d))
             except ValueError:
                 # Return pseudo-ISO dates with zeros for any unselected values,
                 # e.g. '2017-0-23'.
                 return '%s-%s-%s' % (y or 0, m or 0, d or 0)
+            date_value = datetime_safe.new_date(date_value)
             return date_value.strftime(input_format)
         return data.get(name)
 

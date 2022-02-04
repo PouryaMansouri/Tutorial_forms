@@ -68,8 +68,6 @@ class GetCurrentLanguageBidiNode(Node):
 
 
 class TranslateNode(Node):
-    child_nodelists = ()
-
     def __init__(self, filter_expression, noop, asvar=None,
                  message_context=None):
         self.noop = noop
@@ -113,13 +111,6 @@ class BlockTranslateNode(Node):
         self.trimmed = trimmed
         self.asvar = asvar
         self.tag_name = tag_name
-
-    def __repr__(self):
-        return (
-            f'<{self.__class__.__qualname__}: '
-            f'extra_context={self.extra_context!r} '
-            f'singular={self.singular!r} plural={self.plural!r}>'
-        )
 
     def render_token_list(self, tokens):
         result = []

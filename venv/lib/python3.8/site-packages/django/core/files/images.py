@@ -44,10 +44,7 @@ def get_image_dimensions(file_or_path, close=False):
         file_pos = file.tell()
         file.seek(0)
     else:
-        try:
-            file = open(file_or_path, 'rb')
-        except OSError:
-            return (None, None)
+        file = open(file_or_path, 'rb')
         close = True
     try:
         # Most of the time Pillow only needs a small chunk to parse the image

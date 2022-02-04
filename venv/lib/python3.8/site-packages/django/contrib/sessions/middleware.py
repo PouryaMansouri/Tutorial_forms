@@ -10,7 +10,9 @@ from django.utils.http import http_date
 
 
 class SessionMiddleware(MiddlewareMixin):
-    def __init__(self, get_response):
+    # RemovedInDjango40Warning: when the deprecation ends, replace with:
+    #   def __init__(self, get_response):
+    def __init__(self, get_response=None):
         super().__init__(get_response)
         engine = import_module(settings.SESSION_ENGINE)
         self.SessionStore = engine.SessionStore

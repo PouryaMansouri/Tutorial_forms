@@ -307,7 +307,6 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
             SELECT
                 ind.index_name,
                 LOWER(ind.index_type),
-                LOWER(ind.uniqueness),
                 LISTAGG(LOWER(cols.column_name), ',') WITHIN GROUP (ORDER BY cols.column_position),
                 LISTAGG(cols.descend, ',') WITHIN GROUP (ORDER BY cols.column_position)
             FROM
@@ -319,13 +318,13 @@ class DatabaseIntrospection(BaseDatabaseIntrospection):
                     FROM user_constraints cons
                     WHERE ind.index_name = cons.index_name
                 ) AND cols.index_name = ind.index_name
-            GROUP BY ind.index_name, ind.index_type, ind.uniqueness
+            GROUP BY ind.index_name, ind.index_type
         """, [table_name])
-        for constraint, type_, unique, columns, orders in cursor.fetchall():
+        for constraint, type_, columns, orders in cursor.fetchall():
             constraint = self.identifier_converter(constraint)
             constraints[constraint] = {
                 'primary_key': False,
-                'unique': unique == 'unique',
+                'unique': False,
                 'foreign_key': None,
                 'check': False,
                 'index': True,

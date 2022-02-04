@@ -25,9 +25,9 @@ class FieldIsAForeignKeyColumnName(Exception):
     pass
 
 
-def lookup_spawns_duplicates(opts, lookup_path):
+def lookup_needs_distinct(opts, lookup_path):
     """
-    Return True if the given lookup path spawns duplicates.
+    Return True if 'distinct()' should be used to query the given lookup path.
     """
     lookup_fields = lookup_path.split(LOOKUP_SEP)
     # Go through the fields (following all relations) and look for an m2m.
@@ -45,8 +45,7 @@ def lookup_spawns_duplicates(opts, lookup_path):
                 path_info = field.get_path_info()
                 opts = path_info[-1].to_opts
                 if any(path.m2m for path in path_info):
-                    # This field is a m2m relation so duplicates must be
-                    # handled.
+                    # This field is a m2m relation so distinct must be called.
                     return True
     return False
 
@@ -69,7 +68,7 @@ def quote(s):
     Ensure that primary key values do not confuse the admin URLs by escaping
     any '/', '_' and ':' and similarly problematic characters.
     Similar to urllib.parse.quote(), except that the quoting is slightly
-    different so that it doesn't get automatically unquoted by the web browser.
+    different so that it doesn't get automatically unquoted by the Web browser.
     """
     return s.translate(QUOTE_MAP) if isinstance(s, str) else s
 

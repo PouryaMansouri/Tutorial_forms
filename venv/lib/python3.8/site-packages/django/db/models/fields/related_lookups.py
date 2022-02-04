@@ -22,9 +22,6 @@ class MultiColSource:
     def get_lookup(self, lookup):
         return self.output_field.get_lookup(lookup)
 
-    def resolve_expression(self, *args, **kwargs):
-        return self
-
 
 def get_normalized_value(value, lhs):
     from django.db.models import Model

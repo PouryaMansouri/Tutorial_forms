@@ -25,9 +25,6 @@ class OrderedSet:
     def __iter__(self):
         return iter(self.dict)
 
-    def __reversed__(self):
-        return reversed(self.dict)
-
     def __contains__(self, item):
         return item in self.dict
 
@@ -36,10 +33,6 @@ class OrderedSet:
 
     def __len__(self):
         return len(self.dict)
-
-    def __repr__(self):
-        data = repr(list(self.dict)) if self.dict else ''
-        return f'{self.__class__.__qualname__}({data})'
 
 
 class MultiValueDictKeyError(KeyError):
@@ -65,7 +58,7 @@ class MultiValueDict(dict):
     >>> d.setlist('lastname', ['Holovaty', 'Willison'])
 
     This class exists to solve the irritating problem raised by cgi.parse_qs,
-    which returns a list for every key, even though most web forms submit
+    which returns a list for every key, even though most Web forms submit
     single name-value pairs.
     """
     def __init__(self, key_to_list_mapping=()):

@@ -9,8 +9,7 @@ CRITICAL = 50
 class CheckMessage:
 
     def __init__(self, level, msg, hint=None, obj=None, id=None):
-        if not isinstance(level, int):
-            raise TypeError('The first argument should be level.')
+        assert isinstance(level, int), "The first argument should be level."
         self.level = level
         self.msg = msg
         self.hint = hint

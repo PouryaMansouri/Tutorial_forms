@@ -527,11 +527,6 @@ class Command(BaseCommand):
                     )
                 )
                 continue
-            except BaseException:
-                # Cleanup before exit.
-                for build_file in build_files:
-                    build_file.cleanup()
-                raise
             build_files.append(build_file)
 
         if self.domain == 'djangojs':
@@ -555,6 +550,9 @@ class Command(BaseCommand):
                 '--keyword=gettext_noop',
                 '--keyword=gettext_lazy',
                 '--keyword=ngettext_lazy:1,2',
+                '--keyword=ugettext_noop',
+                '--keyword=ugettext_lazy',
+                '--keyword=ungettext_lazy:1,2',
                 '--keyword=pgettext:1c,2',
                 '--keyword=npgettext:1c,2,3',
                 '--keyword=pgettext_lazy:1c,2',
@@ -586,13 +584,10 @@ class Command(BaseCommand):
 
         if msgs:
             if locale_dir is NO_LOCALE_DIR:
-                for build_file in build_files:
-                    build_file.cleanup()
                 file_path = os.path.normpath(build_files[0].path)
                 raise CommandError(
-                    "Unable to find a locale path to store translations for "
-                    "file %s. Make sure the 'locale' directory exists in an "
-                    "app or LOCALE_PATHS setting is set." % file_path
+                    'Unable to find a locale path to store translations for '
+                    'file %s' % file_path
                 )
             for build_file in build_files:
                 msgs = build_file.postprocess_messages(msgs)

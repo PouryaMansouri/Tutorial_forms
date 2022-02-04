@@ -28,6 +28,17 @@ class CreateCustomer(View):
         return render(request=self.request, template_name='customers/create_form.html', context=context)
 
 
+class UpdateCustomer(View):
+
+    def get(self, request, pk):
+        c = Customer.objects.get(pk=pk)
+        form = forms.CustomerForm(instance=c)
+        context = {
+            'create_form': form
+        }
+        return render(request=self.request, template_name='customers/create_form.html', context=context)
+
+
 class CreateCar(View):
 
     def get(self, request):

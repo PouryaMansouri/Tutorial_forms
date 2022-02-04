@@ -5,15 +5,15 @@ import warnings
 from asgiref.sync import sync_to_async
 
 
-class RemovedInDjango41Warning(DeprecationWarning):
+class RemovedInDjango40Warning(DeprecationWarning):
     pass
 
 
-class RemovedInDjango50Warning(PendingDeprecationWarning):
+class RemovedInDjango41Warning(PendingDeprecationWarning):
     pass
 
 
-RemovedInNextVersionWarning = RemovedInDjango41Warning
+RemovedInNextVersionWarning = RemovedInDjango40Warning
 
 
 class warn_about_renamed_method:
@@ -89,22 +89,13 @@ class MiddlewareMixin:
     sync_capable = True
     async_capable = True
 
-    def __init__(self, get_response):
-        if get_response is None:
-            raise ValueError('get_response must be provided.')
+    # RemovedInDjango40Warning: when the deprecation ends, replace with:
+    #   def __init__(self, get_response):
+    def __init__(self, get_response=None):
+        self._get_response_none_deprecation(get_response)
         self.get_response = get_response
         self._async_check()
         super().__init__()
-
-    def __repr__(self):
-        return '<%s get_response=%s>' % (
-            self.__class__.__qualname__,
-            getattr(
-                self.get_response,
-                '__qualname__',
-                self.get_response.__class__.__name__,
-            ),
-        )
 
     def _async_check(self):
         """
@@ -146,3 +137,11 @@ class MiddlewareMixin:
                 thread_sensitive=True,
             )(request, response)
         return response
+
+    def _get_response_none_deprecation(self, get_response):
+        if get_response is None:
+            warnings.warn(
+                'Passing None for the middleware get_response argument is '
+                'deprecated.',
+                RemovedInDjango40Warning, stacklevel=3,
+            )

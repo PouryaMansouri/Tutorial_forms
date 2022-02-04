@@ -54,7 +54,10 @@ class DatabaseCache(BaseDatabaseCache):
         if not keys:
             return {}
 
-        key_map = {self.make_and_validate_key(key, version=version): key for key in keys}
+        key_map = {}
+        for key in keys:
+            self.validate_key(key)
+            key_map[self.make_key(key, version)] = key
 
         db = router.db_for_read(self.cache_model_class)
         connection = connections[db]
@@ -92,15 +95,18 @@ class DatabaseCache(BaseDatabaseCache):
         return result
 
     def set(self, key, value, timeout=DEFAULT_TIMEOUT, version=None):
-        key = self.make_and_validate_key(key, version=version)
+        key = self.make_key(key, version=version)
+        self.validate_key(key)
         self._base_set('set', key, value, timeout)
 
     def add(self, key, value, timeout=DEFAULT_TIMEOUT, version=None):
-        key = self.make_and_validate_key(key, version=version)
+        key = self.make_key(key, version=version)
+        self.validate_key(key)
         return self._base_set('add', key, value, timeout)
 
     def touch(self, key, timeout=DEFAULT_TIMEOUT, version=None):
-        key = self.make_and_validate_key(key, version=version)
+        key = self.make_key(key, version=version)
+        self.validate_key(key)
         return self._base_set('touch', key, None, timeout)
 
     def _base_set(self, mode, key, value, timeout=DEFAULT_TIMEOUT):
@@ -117,12 +123,13 @@ class DatabaseCache(BaseDatabaseCache):
             now = now.replace(microsecond=0)
             if timeout is None:
                 exp = datetime.max
+            elif settings.USE_TZ:
+                exp = datetime.utcfromtimestamp(timeout)
             else:
-                tz = timezone.utc if settings.USE_TZ else None
-                exp = datetime.fromtimestamp(timeout, tz=tz)
+                exp = datetime.fromtimestamp(timeout)
             exp = exp.replace(microsecond=0)
             if num > self._max_entries:
-                self._cull(db, cursor, now, num)
+                self._cull(db, cursor, now)
             pickled = pickle.dumps(value, self.pickle_protocol)
             # The DB column is expecting a string, so make sure the value is a
             # string, not bytes. Refs #19274.
@@ -190,12 +197,15 @@ class DatabaseCache(BaseDatabaseCache):
                 return True
 
     def delete(self, key, version=None):
-        key = self.make_and_validate_key(key, version=version)
-        return self._base_delete_many([key])
+        self.validate_key(key)
+        return self._base_delete_many([self.make_key(key, version)])
 
     def delete_many(self, keys, version=None):
-        keys = [self.make_and_validate_key(key, version=version) for key in keys]
-        self._base_delete_many(keys)
+        key_list = []
+        for key in keys:
+            self.validate_key(key)
+            key_list.append(self.make_key(key, version))
+        self._base_delete_many(key_list)
 
     def _base_delete_many(self, keys):
         if not keys:
@@ -215,16 +225,21 @@ class DatabaseCache(BaseDatabaseCache):
                 ),
                 keys,
             )
-            return bool(cursor.rowcount)
+        return bool(cursor.rowcount)
 
     def has_key(self, key, version=None):
-        key = self.make_and_validate_key(key, version=version)
+        key = self.make_key(key, version=version)
+        self.validate_key(key)
 
         db = router.db_for_read(self.cache_model_class)
         connection = connections[db]
         quote_name = connection.ops.quote_name
 
-        now = timezone.now().replace(microsecond=0, tzinfo=None)
+        if settings.USE_TZ:
+            now = datetime.utcnow()
+        else:
+            now = datetime.now()
+        now = now.replace(microsecond=0)
 
         with connection.cursor() as cursor:
             cursor.execute(
@@ -237,7 +252,7 @@ class DatabaseCache(BaseDatabaseCache):
             )
             return cursor.fetchone() is not None
 
-    def _cull(self, db, cursor, now, num):
+    def _cull(self, db, cursor, now):
         if self._cull_frequency == 0:
             self.clear()
         else:
@@ -245,10 +260,10 @@ class DatabaseCache(BaseDatabaseCache):
             table = connection.ops.quote_name(self._table)
             cursor.execute("DELETE FROM %s WHERE expires < %%s" % table,
                            [connection.ops.adapt_datetimefield_value(now)])
-            deleted_count = cursor.rowcount
-            remaining_num = num - deleted_count
-            if remaining_num > self._max_entries:
-                cull_num = remaining_num // self._cull_frequency
+            cursor.execute("SELECT COUNT(*) FROM %s" % table)
+            num = cursor.fetchone()[0]
+            if num > self._max_entries:
+                cull_num = num // self._cull_frequency
                 cursor.execute(
                     connection.ops.cache_key_culling_sql() % table,
                     [cull_num])

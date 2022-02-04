@@ -4,7 +4,7 @@ import os
 from django.apps import apps
 from django.conf import settings
 from django.contrib.staticfiles import utils
-from django.core.checks import Error, Warning
+from django.core.checks import Error
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import (
     FileSystemStorage, Storage, default_storage,
@@ -75,7 +75,6 @@ class FileSystemFinder(BaseFinder):
                 hint='Perhaps you forgot a trailing comma?',
                 id='staticfiles.E001',
             ))
-            return errors
         for root in settings.STATICFILES_DIRS:
             if isinstance(root, (list, tuple)):
                 prefix, root = root
@@ -90,12 +89,6 @@ class FileSystemFinder(BaseFinder):
                     'The STATICFILES_DIRS setting should not contain the '
                     'STATIC_ROOT setting.',
                     id='staticfiles.E002',
-                ))
-            if not os.path.isdir(root):
-                errors.append(Warning(
-                    f"The directory '{root}' in the STATICFILES_DIRS setting "
-                    f"does not exist.",
-                    id='staticfiles.W004',
                 ))
         return errors
 
@@ -133,11 +126,9 @@ class FileSystemFinder(BaseFinder):
         List all files in all locations.
         """
         for prefix, root in self.locations:
-            # Skip nonexistent directories.
-            if os.path.isdir(root):
-                storage = self.storages[root]
-                for path in utils.get_files(storage, ignore_patterns):
-                    yield path, storage
+            storage = self.storages[root]
+            for path in utils.get_files(storage, ignore_patterns):
+                yield path, storage
 
 
 class AppDirectoriesFinder(BaseFinder):

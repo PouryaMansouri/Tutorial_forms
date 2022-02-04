@@ -7,18 +7,12 @@
 # >>> datetime_safe.date(10, 8, 2).strftime("%Y/%m/%d was a %A")
 # '0010/08/02 was a Monday'
 
-import time
-import warnings
-from datetime import date as real_date, datetime as real_datetime
-
-from django.utils.deprecation import RemovedInDjango50Warning
-from django.utils.regex_helper import _lazy_re_compile
-
-warnings.warn(
-    'The django.utils.datetime_safe module is deprecated.',
-    category=RemovedInDjango50Warning,
-    stacklevel=2,
+import time as ttime
+from datetime import (
+    date as real_date, datetime as real_datetime, time as real_time,
 )
+
+from django.utils.regex_helper import _lazy_re_compile
 
 
 class date(real_date):
@@ -38,6 +32,10 @@ class datetime(real_datetime):
 
     def date(self):
         return date(self.year, self.month, self.day)
+
+
+class time(real_time):
+    pass
 
 
 def new_date(d):
@@ -90,10 +88,10 @@ def strftime(dt, fmt):
     # Move to around the year 2000
     year = year + ((2000 - year) // 28) * 28
     timetuple = dt.timetuple()
-    s1 = time.strftime(fmt, (year,) + timetuple[1:])
+    s1 = ttime.strftime(fmt, (year,) + timetuple[1:])
     sites1 = _findall(s1, str(year))
 
-    s2 = time.strftime(fmt, (year + 28,) + timetuple[1:])
+    s2 = ttime.strftime(fmt, (year + 28,) + timetuple[1:])
     sites2 = _findall(s2, str(year + 28))
 
     sites = []

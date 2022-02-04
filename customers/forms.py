@@ -43,7 +43,6 @@ class CustomerForm(forms.ModelForm):
         return name.capitalize()
 
 
-
 class CarForm(forms.ModelForm):
     class Meta:
         model = Car
