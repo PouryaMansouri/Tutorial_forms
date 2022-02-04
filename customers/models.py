@@ -13,9 +13,19 @@ class Customer(models.Model):
     status = models.BooleanField(null=True, blank=True)
 
     def __str__(self):
-        return f'{self.name} - {self.email}'
+        return f'{self.name} - {self.email} - {self.phone}'
+
+    class Meta:
+        verbose_name = 'Customer'
+        verbose_name_plural = 'Customers'
 
 
 class Car(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     car_name = models.CharField(max_length=120)
+    price = models.PositiveIntegerField()
+
+
+class Club(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
+    name = models.CharField(max_length=100)
