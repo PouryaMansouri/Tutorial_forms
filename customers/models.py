@@ -1,10 +1,11 @@
 from django.db import models
+from django.utils.translation import ugettext_lazy as _
 
 
 # Create your models here.
 
 class Customer(models.Model):
-    name = models.CharField(max_length=150, help_text='name of customer')
+    name = models.CharField(max_length=150, help_text=_('name of customer'))
     email = models.EmailField(unique=True)
     birthday = models.DateField(null=True, blank=True, verbose_name='b date')
     phone = models.CharField(max_length=13)
@@ -16,8 +17,8 @@ class Customer(models.Model):
         return f'{self.name} - {self.email} - {self.phone}'
 
     class Meta:
-        verbose_name = 'Customer'
-        verbose_name_plural = 'Customers'
+        verbose_name = _('مشتری')
+        verbose_name_plural = _('Customers')
 
     def count_car(self):
         return self.car_set.count()

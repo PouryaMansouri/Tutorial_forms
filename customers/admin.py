@@ -18,21 +18,14 @@ class ClubInline(admin.TabularInline):
 class CustomerAdmin(admin.ModelAdmin):
     form = CustomerForm
     list_display = ['id', 'name', 'status', 'email', 'phone', 'count_club']
-    list_display_links = ['email']
-    # fields = ['name', 'phone']
-    fieldsets = (
-        ('General',
-         {'fields': ['name', ]}),
-        ('Info',
-         {'fields': ['phone', 'email']}),
-        ('Address',
-         {'fields': ['address', ]}),
-    )
+    list_display_links = ['email', 'name']
+
     inlines = [CarInline, ClubInline]
     search_fields = ['name', 'phone']
+    list_editable = ['phone', ]
 
     def change_status(self, request, queryset):
-        queryset.update(status=True)
+        queryset.update(status=False)
 
     actions = ['change_status']
 

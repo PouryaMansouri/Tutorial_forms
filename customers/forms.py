@@ -1,5 +1,5 @@
 from django import forms
-
+from django.utils.translation import ugettext_lazy as _
 from customers.models import Customer, Car
 from customers.validators import check_phone
 
@@ -23,8 +23,8 @@ class CustomerForm(forms.ModelForm):
         # fields = '__all__'
         exclude = ['status', ]
         labels = {
-            'name': 'Full Name',
-            'birthday': 'Birthday'
+            'name': _('Full Name'),
+            'birthday': _('Birthday')
         }
 
         widgets = {

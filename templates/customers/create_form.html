@@ -1,19 +1,36 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{{ title }}</title>
     <link rel="stylesheet" href="{% static 'css/table.css' %}">
 </head>
 <body>
+<div>
+    {% get_current_language as LANGUAGE_CODE %}
+    {% get_available_languages as LANGUAGES %}
+    {% get_language_info_list for LANGUAGES as languages %}
+    <ul>
+        {% for lang in languages %}
+            <li>
+                <a href="/{{ lang.code }}/" {% if lang.code == LANGUAGE_CODE %} class="selected"{% endif %}>
+                    {{ lang.name_local }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+</div>
 <form action="{% url 'customers:create' %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <h1>{% trans 'This is a Header' %}</h1>
     <table>
         {{ create_form.as_table }}
     </table>
 
-    <input type="submit" value="create">
+    <input type="submit" value="{% trans 'create' %}">
 </form>
 </body>
 </html>

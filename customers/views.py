@@ -1,7 +1,7 @@
 from django.shortcuts import render, HttpResponse
 # Create your views here.
 from django.views import View
-
+from django.utils.translation import ugettext as _
 from . import forms
 from .models import Customer
 
@@ -23,7 +23,8 @@ class CreateCustomer(View):
     def get(self, request):
         form = forms.CustomerForm()
         context = {
-            'create_form': form
+            'create_form': form,
+            'title': _('My site')
         }
         return render(request=self.request, template_name='customers/create_form.html', context=context)
 
